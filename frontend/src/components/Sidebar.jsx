@@ -1,9 +1,11 @@
 import React from 'react';
 import { Plus, MessageSquare, Trash2, X, Settings, LogOut, User, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
     const { theme, toggleTheme } = useTheme();
+    const { user, logout } = useAuth();
     const conversations = [
         { id: 1, title: 'React Components Help', date: 'Today' },
         { id: 2, title: 'Tailwind CSS Tips', date: 'Yesterday' },
@@ -89,12 +91,19 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                     </button>
                     <button className="flex items-center gap-3 w-full px-3 py-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-sm">
                         <User size={16} />
-                        <div className="flex-1 text-left font-medium">User Name</div>
+                        <div className="flex-1 text-left font-medium">{user?.name || 'User'}</div>
                         <span className="bg-yellow-600 text-[10px] px-1.5 py-0.5 rounded text-white font-bold">NEW</span>
                     </button>
                     <button className="flex items-center gap-3 w-full px-3 py-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-sm mt-1">
                         <Settings size={16} />
                         <div className="flex-1 text-left">Settings</div>
+                    </button>
+                    <button
+                        onClick={logout}
+                        className="flex items-center gap-3 w-full px-3 py-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-sm mt-1 text-red-500 hover:text-red-600"
+                    >
+                        <LogOut size={16} />
+                        <div className="flex-1 text-left">Log out</div>
                     </button>
                 </div>
 
