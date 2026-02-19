@@ -2,8 +2,69 @@ const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const User = require('../model/User');
 const jwt = require('jsonwebtoken');
+const Otp = require('../model/Otp'); // Import Otp model
+const nodemailer = require('nodemailer'); // Import nodemailer
 
 const JWT_SECRET = process.env.JWT_SECRET;
+
+// Configure Nodemailer Transporter
+// NOTE: Use environment variables for real credentials in production
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER, // Your email
+        pass: process.env.EMAIL_PASS  // Your app password
+    }
+});
+
+// Send OTP Route: POST "/api/send-otp"
+const sendOtp = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ error: "User with this email already exists" });
+        }
+
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Save OTP to DB (upsert to handle re-sends)
+        await Otp.findOneAndUpdate(
+            { email },
+            { otp, createdAt: Date.now() },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+
+        // Send Email
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Your Verification Code - CodexGPT',
+            text: `Your verification code is: ${otp}. It expires in 5 minutes.`
+        };
+
+        // If email creds are not set, just log it (for development)
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+            console.log(`[DEV MODE] OTP for ${email}: ${otp}`);
+            return res.status(200).json({
+                success: true,
+                message: "OTP generated (Dev Mode: Check console)",
+                devMode: true
+            });
+        }
+
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({ success: true, message: "OTP sent to your email" });
+
+    } catch (err) {
+        console.error("Send OTP Error:", err.message);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+};
 
 // Create a User using: POST "/api/createuser". No login required
 const createUser = async (req, res) => {
@@ -14,9 +75,15 @@ const createUser = async (req, res) => {
     }
 
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, otp } = req.body;
 
-        // Check if user already exists
+        // Verify OTP
+        const validOtp = await Otp.findOne({ email, otp });
+        if (!validOtp) {
+            return res.status(400).json({ error: "Invalid or expired OTP" });
+        }
+
+        // Check if user already exists (double check)
         let user = await User.findOne({ email });
         if (user) {
             return res.status(400).json({ error: "User with this email already exists" });
@@ -32,6 +99,9 @@ const createUser = async (req, res) => {
             email,
             password: hashedPassword
         });
+
+        // Delete used OTP
+        await Otp.deleteOne({ email });
 
         // Prepare payload for JWT
         const payload = {
@@ -152,8 +222,14 @@ const forgotPassword = async (req, res) => {
             return res.status(404).json({ error: "User not found" });
         }
 
+        // Generator logic/token for real reset would be here
+        // For now, logging to console if dev
+        if (!process.env.EMAIL_USER) {
+            console.log(`[DEV] Password reset requested for ${email}`);
+        }
+
         // Logic to send reset password email would go here
-        // For now, we'll just return a success message
+
         return res.status(200).json({ message: "Password reset link has been sent to your email" });
 
     } catch (err) {
@@ -161,4 +237,4 @@ const forgotPassword = async (req, res) => {
         return res.status(500).json({ error: "Internal Server Error" });
     }
 }
-module.exports = { createUser, loginUser, getUser, userProfile, updateProfile, forgotPassword };
+module.exports = { createUser, loginUser, getUser, userProfile, updateProfile, forgotPassword, sendOtp };

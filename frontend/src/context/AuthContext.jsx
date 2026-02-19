@@ -51,7 +51,9 @@ export const AuthProvider = ({ children }) => {
             const data = await response.json();
             if (data.success) {
                 localStorage.setItem('token', data.token);
-                setUser({ name: data.name, email }); // Basic info, could fetch full profile
+                // Trigger a fresh fetch of user details to ensure all data is consistent
+                // or just set what we have
+                setUser({ name: data.name, email });
                 return { success: true };
             } else {
                 return { success: false, error: data.error };
@@ -62,14 +64,35 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const signup = async (name, email, password) => {
+    const sendOtp = async (email) => {
+        try {
+            const response = await fetch('http://localhost:5000/api/send-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+                return { success: true, message: data.message, devMode: data.devMode };
+            } else {
+                return { success: false, error: data.error };
+            }
+        } catch (error) {
+            console.error("Send OTP error", error);
+            return { success: false, error: "Server error" };
+        }
+    };
+
+    const signup = async (name, email, password, otp) => {
         try {
             const response = await fetch('http://localhost:5000/api/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ name, email, password }),
+                body: JSON.stringify({ name, email, password, otp }),
             });
             const data = await response.json();
             if (data.success) {
@@ -167,7 +190,8 @@ export const AuthProvider = ({ children }) => {
         logout,
         getUserProfile,
         updateProfile,
-        forgotPassword
+        forgotPassword,
+        sendOtp
     };
 
     return (

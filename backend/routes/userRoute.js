@@ -2,13 +2,14 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const fetchUser = require('../middleware/fetchUser');
-const { createUser, loginUser, getUser, userProfile, updateProfile, forgotPassword } = require('../controller/userController');
+const { createUser, loginUser, getUser, userProfile, updateProfile, forgotPassword, sendOtp } = require('../controller/userController');
 
 // Route 1: Create a User using: POST "/api/register". No login required
 router.post('/register', [
     body('name', "Name must be at least 3 characters").isLength({ min: 3 }),
     body('email', "Please enter a valid email").isEmail(),
-    body('password', "Password must be at least 5 characters").isLength({ min: 5 })
+    body('password', "Password must be at least 5 characters").isLength({ min: 5 }),
+    body('otp', "OTP is required").isLength({ min: 6, max: 6 }) // Add OTP validation
 ], createUser);
 
 // Route 2: Authenticate a User using: POST "/api/login". No login required
@@ -34,5 +35,9 @@ router.post('/forgotPassword', [
     body('email', "Please enter a valid email").isEmail()
 ], forgotPassword);
 
+// Route 7: Send OTP using: POST "/api/send-otp". No login required
+router.post('/send-otp', [
+    body('email', "Please enter a valid email").isEmail()
+], sendOtp);
 
 module.exports = router;
