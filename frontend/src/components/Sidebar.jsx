@@ -2,16 +2,24 @@ import React from 'react';
 import { Plus, MessageSquare, Trash2, X, Settings, LogOut, User, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
     const { theme, toggleTheme } = useTheme();
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
     const conversations = [
         { id: 1, title: 'React Components Help', date: 'Today' },
         { id: 2, title: 'Tailwind CSS Tips', date: 'Yesterday' },
         { id: 3, title: 'Debug Node.js Error', date: 'Previous 7 Days' },
         { id: 4, title: 'Explain Quantum Physics', date: 'Previous 30 Days' },
     ];
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
     return (
         <>
@@ -89,17 +97,23 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                         {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
                         <div className="flex-1 text-left">{theme === 'light' ? 'Dark mode' : 'Light mode'}</div>
                     </button>
-                    <button className="flex items-center gap-3 w-full px-3 py-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-sm">
+                    <button
+                        onClick={() => navigate('/profile')}
+                        className="flex items-center gap-3 w-full px-3 py-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-sm"
+                    >
                         <User size={16} />
                         <div className="flex-1 text-left font-medium">{user?.name || 'User'}</div>
-                        <span className="bg-yellow-600 text-[10px] px-1.5 py-0.5 rounded text-white font-bold">NEW</span>
+                        <span className="bg-yellow-600 text-[10px] px-1.5 py-0.5 rounded text-white font-bold">PRO</span>
                     </button>
-                    <button className="flex items-center gap-3 w-full px-3 py-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-sm mt-1">
+                    <button
+                        onClick={() => navigate('/update-profile')}
+                        className="flex items-center gap-3 w-full px-3 py-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-sm mt-1"
+                    >
                         <Settings size={16} />
                         <div className="flex-1 text-left">Settings</div>
                     </button>
                     <button
-                        onClick={logout}
+                        onClick={handleLogout}
                         className="flex items-center gap-3 w-full px-3 py-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-sm mt-1 text-red-500 hover:text-red-600"
                     >
                         <LogOut size={16} />

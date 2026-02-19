@@ -1,9 +1,18 @@
 import React from 'react';
 import { Menu, Moon, Sun, ChevronDown, Share, Info } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext'; // Import useAuth
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = ({ toggleSidebar }) => {
     const { theme, toggleTheme } = useTheme();
+    const { user } = useAuth(); // Get user from context
+    const navigate = useNavigate();
+
+    // Calculate initials
+    const initials = user?.name
+        ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+        : 'G';
 
     return (
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 dark:border-gray-900/50 bg-white dark:bg-gray-800 p-2 text-gray-500">
@@ -40,9 +49,13 @@ const Navbar = ({ toggleSidebar }) => {
                     {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                 </button>
 
-                {/* User Avatar (Placeholder) */}
-                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium text-sm ml-1 cursor-pointer">
-                    SB
+                {/* User Avatar */}
+                <div
+                    onClick={() => navigate('/profile')}
+                    className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium text-sm ml-1 cursor-pointer hover:opacity-80 transition-opacity"
+                    title={user?.name || "Guest"}
+                >
+                    {initials}
                 </div>
             </div>
         </div>

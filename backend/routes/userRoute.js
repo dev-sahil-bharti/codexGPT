@@ -21,7 +21,7 @@ router.post('/login', [
 router.get('/getuser', fetchUser, getUser);
 
 // Route 4: Get userProfile User Details using: POST "/api/userProfile". Login required
-router.post('/userProfile', fetchUser, userProfile);
+router.get('/userProfile', fetchUser, userProfile);
 
 // Route 5: Update User Profile using: PUT "/api/updateProfile". Login required
 router.put('/updateProfile', fetchUser, [

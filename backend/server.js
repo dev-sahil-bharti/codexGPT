@@ -14,7 +14,6 @@ app.use(express.json())
 // Available routes 
 app.use('/api', require('./routes/userRoute'))
 app.use('/api', require('./routes/chatRoute'))
-// app.use('/api/notes', require('./routes/notes'))
 
 app.get('/', (req, res) => {
     res.send('Hello coders from Ai chatboot backend!');

@@ -5,6 +5,8 @@ import ChatWindow from './components/ChatWindow'
 import { ThemeProvider } from './context/ThemeContext'
 import Login from './pages/Login'
 import Singup from './pages/Singup' // Keeping the original filename as per user request
+import UserProfile from './pages/UserProfile'
+import UpdateUserProfile from './pages/UpdateUserProfile'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 
@@ -96,6 +98,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ChatLayout />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <UserProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/update-profile"
+              element={
+                <ProtectedRoute>
+                  <UpdateUserProfile />
                 </ProtectedRoute>
               }
             />

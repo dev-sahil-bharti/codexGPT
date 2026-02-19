@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Eye, EyeOff, Mail, Lock, Github, Chrome } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Github, Chrome, ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -11,7 +11,10 @@ const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const [isForgotPassword, setIsForgotPassword] = useState(false); // State for toggle
+  const [resetMessage, setResetMessage] = useState("");
+
+  const { login, forgotPassword } = useAuth(); // Import forgotPassword
   const navigate = useNavigate();
 
   const validate = () => {
@@ -21,10 +24,13 @@ const Login = () => {
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Enter a valid email";
     }
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+
+    if (!isForgotPassword) {
+      if (!formData.password) {
+        newErrors.password = "Password is required";
+      } else if (formData.password.length < 6) {
+        newErrors.password = "Password must be at least 6 characters";
+      }
     }
     return newErrors;
   };
@@ -43,21 +49,29 @@ const Login = () => {
       return;
     }
     setLoading(true);
+    setResetMessage("");
 
-    // Call login from AuthContext
-    const result = await login(formData.email, formData.password);
+    if (isForgotPassword) {
+      // Handle Forgot Password
+      const result = await forgotPassword(formData.email);
+      if (result.success) {
+        setResetMessage(result.message || "Reset link sent! Check your email.");
+        setFormData({ ...formData, email: "" }); // Clear email
+      } else {
+        setErrors({ email: result.error });
+      }
+    } else {
+      // Handle Login
+      const result = await login(formData.email, formData.password);
+      if (result.success) {
+        navigate("/");
+      } else {
+        setErrors({ email: result.error, password: result.error });
+        // alert(result.error);
+      }
+    }
 
     setLoading(false);
-
-    if (result.success) {
-      navigate("/");
-    } else {
-      setErrors({ email: result.error, password: result.error });
-      // Or set a general error state if you have one, 
-      // but putting it on email/password ensures visibility for now
-      // ideally we'd have a general error message box
-      alert(result.error);
-    }
   };
 
   return (
@@ -73,27 +87,40 @@ const Login = () => {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 shadow-lg mb-4 p-2">
             <img src={logo} alt="Logo" className="w-full h-full object-contain" />
           </div>
-          <p className="text-white/50 text-sm mt-1">Login to your account to continue</p>
+          <p className="text-white/50 text-sm mt-1">
+            {isForgotPassword ? "Reset your password" : "Login to your account to continue"}
+          </p>
         </div>
 
-        {/* Social Buttons */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/80 text-sm font-medium transition-all duration-200 hover:border-white/20">
-            <Chrome size={18} className="text-blue-400" />
-            Google
-          </button>
-          <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/80 text-sm font-medium transition-all duration-200 hover:border-white/20">
-            <Github size={18} />
-            GitHub
-          </button>
-        </div>
+        {/* Social Buttons - Hide on Forgot Password */}
+        {!isForgotPassword && (
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/80 text-sm font-medium transition-all duration-200 hover:border-white/20">
+              <Chrome size={18} className="text-blue-400" />
+              Google
+            </button>
+            <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/80 text-sm font-medium transition-all duration-200 hover:border-white/20">
+              <Github size={18} />
+              GitHub
+            </button>
+          </div>
+        )}
 
-        {/* Divider */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex-1 h-px bg-white/10" />
-          <span className="text-white/30 text-xs font-medium">OR CONTINUE WITH EMAIL</span>
-          <div className="flex-1 h-px bg-white/10" />
-        </div>
+        {/* Divider - Hide on Forgot Password */}
+        {!isForgotPassword && (
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex-1 h-px bg-white/10" />
+            <span className="text-white/30 text-xs font-medium">OR CONTINUE WITH EMAIL</span>
+            <div className="flex-1 h-px bg-white/10" />
+          </div>
+        )}
+
+        {/* Success Message for Reset */}
+        {resetMessage && (
+          <div className="mb-4 p-3 bg-green-500/20 text-green-400 rounded-xl text-sm text-center border border-green-500/30">
+            {resetMessage}
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -117,35 +144,45 @@ const Login = () => {
             {errors.email && <p className="text-red-400 text-xs mt-1.5">{errors.email}</p>}
           </div>
 
-          {/* Password */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-sm font-medium text-white/70">Password</label>
-              <a href="#" className="text-xs text-purple-400 hover:text-purple-300 transition-colors">
-                Forgot password?
-              </a>
+          {/* Password - Hide on Forgot Password */}
+          {!isForgotPassword && (
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-medium text-white/70">Password</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotPassword(true);
+                    setErrors({});
+                    setResetMessage("");
+                  }}
+                  className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                >
+                  Forgot password?
+                </button>
+              </div>
+              <div className="relative">
+                <Lock size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className={`w-full bg-white/5 border ${errors.password ? "border-red-500/60" : "border-white/10"
+                    } text-white placeholder-white/20 rounded-xl pl-10 pr-11 py-3 text-sm outline-none focus:border-purple-500/60 focus:bg-white/10 transition-all duration-200`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </div>
+              {errors.password && <p className="text-red-400 text-xs mt-1.5">{errors.password}</p>}
             </div>
-            <div className="relative">
-              <Lock size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className={`w-full bg-white/5 border ${errors.password ? "border-red-500/60" : "border-white/10"
-                  } text-white placeholder-white/20 rounded-xl pl-10 pr-11 py-3 text-sm outline-none focus:border-purple-500/60 focus:bg-white/10 transition-all duration-200`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
-              >
-                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-              </button>
-            </div>
-            {errors.password && <p className="text-red-400 text-xs mt-1.5">{errors.password}</p>}
-          </div>
+          )}
 
           {/* Submit Button */}
           <button
@@ -159,21 +196,40 @@ const Login = () => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="white" strokeWidth="4" />
                   <path className="opacity-75" fill="white" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
                 </svg>
-                Signing
+                {isForgotPassword ? "Sending..." : "Signing in..."}
               </>
             ) : (
-              "Sign in"
+              isForgotPassword ? "Send Reset Link" : "Sign in"
             )}
           </button>
+
+          {/* Back to Login Button */}
+          {isForgotPassword && (
+            <button
+              type="button"
+              onClick={() => {
+                setIsForgotPassword(false);
+                setErrors({});
+                setResetMessage("");
+              }}
+              className="w-full py-2.5 text-white/60 hover:text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
+            >
+              <ArrowLeft size={16} />
+              Back to Login
+            </button>
+          )}
+
         </form>
 
-        {/* Sign Up Link */}
-        <p className="text-center text-white/40 text-sm mt-6">
-          Don't have an account?{" "}
-          <Link to="/signup" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
-            Create new Account
-          </Link>
-        </p>
+        {/* Sign Up Link - Hide on Forgot Password */}
+        {!isForgotPassword && (
+          <p className="text-center text-white/40 text-sm mt-6">
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
+              Create new Account
+            </Link>
+          </p>
+        )}
       </div>
     </div>
   );
