@@ -182,6 +182,30 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // Change Password
+    const changePassword = async (currentPassword, newPassword) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/changepassword', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'auth-token': token,
+                },
+                body: JSON.stringify({ currentPassword, newPassword }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+                return { success: true, message: data.message };
+            } else {
+                return { success: false, error: data.error };
+            }
+        } catch (error) {
+            console.error("Change Password error", error);
+            return { success: false, error: "Server error" };
+        }
+    };
+
     const value = {
         user,
         loading,
@@ -191,7 +215,9 @@ export const AuthProvider = ({ children }) => {
         getUserProfile,
         updateProfile,
         forgotPassword,
-        sendOtp
+        forgotPassword,
+        sendOtp,
+        changePassword
     };
 
     return (
