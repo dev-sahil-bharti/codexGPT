@@ -9,6 +9,9 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [chats, setChats] = useState([]);
+    const [currentChatId, setCurrentChatId] = useState(null);
+    const [messages, setMessages] = useState([]);
 
     // Load user from token on startup
     useEffect(() => {
@@ -206,6 +209,127 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // --- Chat Functions ---
+
+    // Fetch all chat titles for sidebar
+    const fetchChatSummaries = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/fetchchats', {
+                method: 'GET',
+                headers: {
+                    'auth-token': token,
+                },
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setChats(data);
+                return { success: true, chats: data };
+            } else {
+                return { success: false, error: data.error };
+            }
+        } catch (error) {   
+            console.error("Fetch Chats Error:", error);
+            return { success: false, error: "Server error" };
+        }
+    };
+
+    // Load messages for a specific chat
+    const loadChatMessages = async (chatId) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/chat/${chatId}`, {
+                method: 'GET',
+                headers: {
+                    'auth-token': token,
+                },
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setMessages(data.messages);
+                setCurrentChatId(chatId);
+                return { success: true, chat: data };
+            } else {
+                return { success: false, error: data.error };
+            }
+        } catch (error) {
+            console.error("Load Chat Error:", error);
+            return { success: false, error: "Server error" };
+        }
+    };
+
+    // Send message (unified for new and existing chats)
+    const sendMessage = async (prompt) => {
+        try {
+            const token = localStorage.getItem('token');
+
+            // Add user message optimistically to UI
+            const userMsg = { role: 'user', content: prompt, timestamp: new Date() };
+            setMessages(prev => [...prev, userMsg]);
+
+            const response = await fetch('http://localhost:5000/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'auth-token': token,
+                },
+                body: JSON.stringify({ prompt, chatId: currentChatId }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                const modelMsg = { role: 'model', content: data.response, timestamp: new Date() };
+                setMessages(prev => [...prev, modelMsg]);
+
+                // If it was a new chat, update the list and set active ID
+                if (!currentChatId) {
+                    setCurrentChatId(data.chatId);
+                    fetchChatSummaries();
+                }
+
+                return { success: true, response: data.response };
+            } else {
+                return { success: false, error: data.error };
+            }
+        } catch (error) {
+            console.error("Send Message Error:", error);
+            return { success: false, error: "Server error" };
+        }
+    };
+
+    // Clear chat / New Chat
+    const startNewChat = () => {
+        setCurrentChatId(null);
+        setMessages([]);
+    };
+
+    // Delete a chat session
+    const deleteChat = async (chatId) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/chat/${chatId}`, {
+                method: 'DELETE',
+                headers: {
+                    'auth-token': token,
+                },
+            });
+            if (response.ok) {
+                setChats(prev => prev.filter(c => c._id !== chatId));
+                if (currentChatId === chatId) {
+                    startNewChat();
+                }
+                return { success: true };
+            } else {
+                const data = await response.json();
+                return { success: false, error: data.error };
+            }
+        } catch (error) {
+            console.error("Delete Chat Error:", error);
+            return { success: false, error: "Server error" };
+        }
+    };
+
     const value = {
         user,
         loading,
@@ -216,7 +340,17 @@ export const AuthProvider = ({ children }) => {
         updateProfile,
         forgotPassword,
         sendOtp,
-        changePassword
+        changePassword,
+        // Chat History additions
+        chats,
+        messages,
+        currentChatId,
+        fetchChatSummaries,
+        loadChatMessages,
+        sendMessage,
+        startNewChat,
+        deleteChat,
+        setMessages
     };
 
     return (

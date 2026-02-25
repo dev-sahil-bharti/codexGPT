@@ -6,15 +6,17 @@ import { useNavigate } from 'react-router-dom';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
     const { theme, toggleTheme } = useTheme();
-    const { user, logout } = useAuth();
+    const {
+        user, logout, chats, fetchChatSummaries,
+        loadChatMessages, startNewChat, deleteChat, currentChatId
+    } = useAuth();
     const navigate = useNavigate();
 
-    const conversations = [
-        { id: 1, title: 'React Components Help', date: 'Today' },
-        { id: 2, title: 'Tailwind CSS Tips', date: 'Yesterday' },
-        { id: 3, title: 'Debug Node.js Error', date: 'Previous 7 Days' },
-        { id: 4, title: 'Explain Quantum Physics', date: 'Previous 30 Days' },
-    ];
+    React.useEffect(() => {
+        if (user) {
+            fetchChatSummaries();
+        }
+    }, [user]);
 
     const handleLogout = () => {
         logout();
@@ -44,8 +46,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 {/* New Chat Button */}
                 <div className="p-3">
                     <button
-                        className="flex items-center gap-3 w-full px-3 py-3 rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-sm text-left"
-                        onClick={() => console.log('New Chat')}
+                        className="flex items-center gap-3 w-full px-3 py-3 rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-sm text-left font-medium"
+                        onClick={() => {
+                            startNewChat();
+                            if (window.innerWidth < 768) toggleSidebar();
+                        }}
                     >
                         <Plus size={16} />
                         <span>New chat</span>
@@ -54,38 +59,48 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
                 {/* Conversations List */}
                 <div className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent">
-                    <div className="text-xs font-semibold text-gray-500 mb-2 px-2">Today</div>
-                    {conversations.slice(0, 1).map((chat) => (
-                        <div key={chat.id} className="group relative flex items-center gap-3 px-3 py-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer text-sm transition-colors mb-1">
-                            <MessageSquare size={16} className="text-gray-500 dark:text-gray-400" />
-                            <div className="flex-1 truncate relative pr-6">
-                                {chat.title}
-                                <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-gray-200 dark:from-gray-800 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
-                        </div>
-                    ))}
+                    <div className="text-xs font-semibold text-gray-500 mb-4 px-2 uppercase tracking-wider">Recent History</div>
 
-                    <div className="text-xs font-semibold text-gray-500 mb-2 mt-4 px-2">Yesterday</div>
-                    {conversations.slice(1, 2).map((chat) => (
-                        <div key={chat.id} className="group relative flex items-center gap-3 px-3 py-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer text-sm transition-colors mb-1">
-                            <MessageSquare size={16} className="text-gray-500 dark:text-gray-400" />
-                            <div className="flex-1 truncate relative pr-6">
-                                {chat.title}
-                                <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-gray-200 dark:from-gray-800 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
-                        </div>
-                    ))}
+                    {chats.length === 0 ? (
+                        <div className="text-sm text-gray-400 px-2 italic mt-4">No recent chats</div>
+                    ) : (
+                        chats.map((chat) => (
+                            <div
+                                key={chat._id}
+                                className={`group relative flex items-center gap-3 px-3 py-3 rounded-md cursor-pointer text-sm transition-all mb-1 ${currentChatId === chat._id
+                                        ? 'bg-gray-200 dark:bg-gray-800 text-blue-600 dark:text-blue-400'
+                                        : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+                                    }`}
+                                onClick={() => {
+                                    loadChatMessages(chat._id);
+                                    if (window.innerWidth < 768) toggleSidebar();
+                                }}
+                            >
+                                <MessageSquare size={16} className={currentChatId === chat._id ? 'text-blue-500' : 'text-gray-500 dark:text-gray-400'} />
+                                <div className="flex-1 truncate pr-6">
+                                    {chat.title}
+                                </div>
 
-                    <div className="text-xs font-semibold text-gray-500 mb-2 mt-4 px-2">Previous 7 Days</div>
-                    {conversations.slice(2, 4).map((chat) => (
-                        <div key={chat.id} className="group relative flex items-center gap-3 px-3 py-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer text-sm transition-colors mb-1">
-                            <MessageSquare size={16} className="text-gray-500 dark:text-gray-400" />
-                            <div className="flex-1 truncate relative pr-6">
-                                {chat.title}
-                                <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-gray-200 dark:from-gray-800 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                {/* Delete Button */}
+                                <button
+                                    className="absolute right-2 opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition-all"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (window.confirm('Delete this chat?')) {
+                                            deleteChat(chat._id);
+                                        }
+                                    }}
+                                >
+                                    <Trash2 size={14} />
+                                </button>
+
+                                <div className={`absolute inset-y-0 right-0 w-8 bg-gradient-to-l opacity-0 group-hover:opacity-100 transition-opacity ${currentChatId === chat._id
+                                        ? 'from-gray-200 dark:from-gray-800'
+                                        : 'from-gray-100 dark:from-gray-900'
+                                    } to-transparent`} />
                             </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
 
                 {/* User Profile / Settings */}

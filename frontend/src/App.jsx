@@ -21,65 +21,18 @@ const ProtectedRoute = ({ children }) => {
 
 const ChatLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [messages, setMessages] = useState([]);
+  const { messages, sendMessage, startNewChat } = useAuth();
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-
-  /* Updated handleSend to call backend API with loading state and error handling */
-  const { logout } = useAuth();
-
-  const handleSend = async (text) => {
-    // Add user message
-    const newMessage = { role: 'user', content: text };
-    setMessages((prev) => [...prev, newMessage]);
-
-    // Add temporary loading message
-    const loadingId = Date.now();
-    setMessages((prev) => [...prev, { role: 'assistant', content: "Thinking...", id: loadingId, isLoading: true }]);
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'auth-token': token
-        },
-        body: JSON.stringify({ prompt: text })
-      });
-
-      const data = await response.json();
-
-      // Remove loading message
-      setMessages((prev) => prev.filter(msg => msg.id !== loadingId));
-
-      if (response.ok) {
-        const aiResponse = { role: 'assistant', content: data.response };
-        setMessages((prev) => [...prev, aiResponse]);
-      } else {
-        if (response.status === 401) {
-          logout(); // Logout if token is invalid
-          return;
-        }
-        const errorMsg = data.error || "Failed to get response";
-        setMessages((prev) => [...prev, { role: 'assistant', content: `Error: ${errorMsg}` }]);
-      }
-
-    } catch (error) {
-      console.error("Chat Error:", error);
-      // Remove loading message
-      setMessages((prev) => prev.filter(msg => msg.id !== loadingId));
-      setMessages((prev) => [...prev, { role: 'assistant', content: "Error: Unable to connect to server." }]);
-    }
-  };
 
   return (
     <div className="flex h-screen bg-white dark:bg-gray-800 overflow-hidden">
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <ChatWindow
         messages={messages}
-        onSend={handleSend}
+        onSend={sendMessage}
         toggleSidebar={toggleSidebar}
+        startNewChat={startNewChat}
       />
     </div>
   );
