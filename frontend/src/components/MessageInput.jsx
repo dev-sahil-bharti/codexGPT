@@ -7,10 +7,9 @@ const MessageInput = ({ onSend }) => {
 
     const handleInput = (e) => {
         setInput(e.target.value);
-        // Auto-resize
         if (textareaRef.current) {
             textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+            textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
         }
     };
 
@@ -26,34 +25,54 @@ const MessageInput = ({ onSend }) => {
         onSend(input);
         setInput('');
         if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto'; // Reset height
+            textareaRef.current.style.height = 'auto';
         }
     };
 
     return (
-        <div className="absolute bottom-0 left-0 w-full border-t md:border-t-0 dark:border-white/20 md:border-transparent md:dark:border-transparent md:bg-vert-light-gradient bg-white dark:bg-gray-800 md:bg-transparent! dark:md:bg-vert-dark-gradient pt-2">
-            <div className="mx-auto md:max-w-2xl lg:max-w-3xl md:px-4 lg:px-0 flex flex-col space-y-2 p-3 md:py-6">
-                <div className="relative flex h-full flex-1 items-stretch md:flex-col">
-                    <div className="flex flex-col w-full py-2.5 grow md:py-3.5 md:pl-4 relative border border-black/10 bg-white dark:border-gray-900/50 dark:text-white dark:bg-gray-700 rounded-md shadow-[0_0_10px_rgba(0,0,0,0.10)] dark:shadow-[0_0_15px_rgba(0,0,0,0.10)]">
-                        <textarea
-                            ref={textareaRef}
-                            value={input}
-                            onChange={handleInput}
-                            onKeyDown={handleKeyDown}
-                            placeholder="Send a message..."
-                            className="m-0 w-full resize-none border-0 bg-transparent p-0 pr-10 focus:ring-0 focus-visible:ring-0 dark:bg-transparent pl-3 md:pl-0 max-h-50 overflow-y-auto"
-                            rows={1}
-                            style={{ maxHeight: '200px' }}
-                        />
+        <div className="absolute bottom-0 left-0 w-full pt-10 pb-4 px-4 md:px-0 bg-gradient-to-t from-white via-white/80 to-transparent dark:from-gray-800 dark:via-gray-800/80 dark:to-transparent pointer-events-none">
+            <div className="max-w-3xl mx-auto pointer-events-auto">
+                <div className={`
+                    relative flex items-end w-full transition-all duration-300 ease-in-out
+                    bg-white/70 dark:bg-gray-700/70 backdrop-blur-xl
+                    border-2 rounded-2xl p-2 pr-3 pl-4 
+                    shadow-lg hover:shadow-xl dark:shadow-none
+                    ${input
+                        ? 'border-blue-400 dark:border-blue-500 ring-4 ring-blue-500/10'
+                        : 'border-gray-200 dark:border-gray-600 focus-within:border-blue-400 dark:focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10'}
+                `}>
+                    <textarea
+                        ref={textareaRef}
+                        value={input}
+                        onChange={handleInput}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Ask me anything..."
+                        rows={1}
+                        className="flex-1 max-h-[200px] py-3 pr-2 resize-none bg-transparent border-none focus:ring-0 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-base leading-relaxed scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600"
+                    />
+
+                    <div className="flex items-center gap-2 pb-1.5">
+                        <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <Paperclip size={20} />
+                        </button>
+
                         <button
                             onClick={handleSend}
-                            className="absolute p-1 rounded-md text-gray-500 bottom-1.5 right-1 md:bottom-2.5 md:right-2 hover:bg-gray-100 dark:hover:bg-gray-900 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent transition-colors disabled:opacity-40"
                             disabled={!input.trim()}
+                            className={`
+                                p-2.5 rounded-xl transition-all duration-300 transform active:scale-95
+                                ${input.trim()
+                                    ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700 hover:shadow-blue-500/40'
+                                    : 'bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-500 cursor-not-allowed'}
+                            `}
                         >
-                            <Send size={16} className="-ml-px" />
+                            <Send size={18} className={input.trim() ? "animate-in fade-in zoom-in duration-300" : ""} />
                         </button>
                     </div>
                 </div>
+                <p className="text-[12px] text-center mt-3 text-gray-400 dark:text-gray-500 px-4">
+                    Gemini can make mistakes. Consider checking important information.
+                </p>
             </div>
         </div>
     );
