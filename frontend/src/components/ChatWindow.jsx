@@ -24,9 +24,9 @@ const ChatWindow = ({ messages, onSend, toggleSidebar }) => {
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto w-full pb-32 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
                 {messages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center p-8">
-                        <h2 className="text-4xl font-semibold mb-2 text-gray-700 dark:text-gray-300">What’s on the agenda today?</h2>
-                        <p className="text-gray-500 dark:text-gray-400 max-w-sm">
+                    <div className="flex flex-col items-center justify-center h-full text-center p-6 md:p-8">
+                        <h2 className="text-2xl md:text-4xl font-semibold mb-2 text-gray-700 dark:text-gray-300 px-4">What’s on the agenda today?</h2>
+                        <p className="text-gray-500 dark:text-gray-400 max-w-sm px-6">
                             Start a new conversation or select a previous chat from the sidebar to continue.
                         </p>
                     </div>

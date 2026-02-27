@@ -26,9 +26,9 @@ const Navbar = ({ toggleSidebar }) => {
                     <Menu size={24} />
                 </button>
 
-                <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-200 font-semibold group">
-                    <span>CodeX AI</span>
-                    <ChevronDown size={16} className="text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-200" />
+                <button className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-200 font-semibold group">
+                    <span className="text-sm md:text-base">CodeX AI</span>
+                    <ChevronDown size={14} className="text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-200" />
                 </button>
             </div>
 

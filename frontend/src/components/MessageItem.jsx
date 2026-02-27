@@ -12,35 +12,40 @@ const MessageItem = ({ message }) => {
     };
 
     return (
-        <div className={`group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 ${isUser ? 'dark:bg-gray-800' : 'bg-gray-50 dark:bg-[#444654]'}`}>
-            <div className="flex p-4 gap-4 text-base md:gap-6 md:max-w-2xl lg:max-w-[38rem] xl:max-w-3xl md:py-6 lg:px-0 m-auto">
+        <div className={`flex w-full px-3 md:px-6 py-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
+            <div className={`flex max-w-[85%] md:max-w-[70%] gap-2 md:gap-5 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
 
                 {/* Avatar */}
-                <div className="flex-shrink-0 flex flex-col relative items-end">
-                    <div className="relative h-8 w-8 p-1 rounded-sm text-white flex items-center justify-center" style={{ backgroundColor: isUser ? '#5436DA' : '#19c37d' }}>
-                        {isUser ? <User size={20} /> : <StepForward size={20} />}
+                <div className="flex-shrink-0 flex items-end mb-1">
+                    <div className="relative h-8 w-8 rounded-full text-white flex items-center justify-center shadow-sm" style={{ backgroundColor: isUser ? '#7C3AED' : '#10A37F' }}>
+                        {isUser ? <User size={18} /> : <StepForward size={18} />}
                     </div>
                 </div>
 
-                {/* Content */}
-                <div className="relative flex-1 overflow-hidden">
-                    <div className="prose dark:prose-invert min-h-[20px] whitespace-pre-wrap">
-                        {message.content}
+                {/* Message Bubble */}
+                <div className="relative flex flex-col group">
+                    <div className={`px-4 py-3 rounded-2xl shadow-sm text-sm md:text-base ${isUser
+                        ? 'bg-purple-600 text-white rounded-tr-none'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-tl-none'
+                        }`}>
+                        <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
+                            {message.content}
+                        </div>
                     </div>
-                </div>
 
-                {/* Actions (Copy, etc) - only for AI messages usually, but good for both */}
-                {!isUser && (
-                    <div className="flex self-start items-center justify-center gap-2 visible md:invisible md:group-hover:visible">
-                        <button
-                            onClick={handleCopy}
-                            className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                            title="Copy to clipboard"
-                        >
-                            {copied ? <Check size={16} /> : <Copy size={16} />}
-                        </button>
-                    </div>
-                )}
+                    {/* Actions - only for AI messages usually */}
+                    {!isUser && (
+                        <div className="flex items-center gap-2 mt-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                                onClick={handleCopy}
+                                className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-500 dark:text-gray-400"
+                                title="Copy to clipboard"
+                            >
+                                {copied ? <Check size={14} /> : <Copy size={14} />}
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

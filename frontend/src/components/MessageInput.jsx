@@ -30,7 +30,7 @@ const MessageInput = ({ onSend }) => {
     };
 
     return (
-        <div className="absolute bottom-0 left-0 w-full pt-10 pb-4 px-4 md:px-0 bg-gradient-to-t from-white via-white/80 to-transparent dark:from-gray-800 dark:via-gray-800/80 dark:to-transparent pointer-events-none">
+        <div className="absolute bottom-0 left-0 w-full pt-4 md:pt-10 pb-2 md:pb-4 px-3 md:px-0 bg-gradient-to-t from-white via-white/80 to-transparent dark:from-gray-800 dark:via-gray-800/80 dark:to-transparent pointer-events-none">
             <div className="max-w-3xl mx-auto pointer-events-auto">
                 <div className={`
                     relative flex items-end w-full transition-all duration-300 ease-in-out
