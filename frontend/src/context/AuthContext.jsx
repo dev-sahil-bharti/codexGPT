@@ -228,7 +228,7 @@ export const AuthProvider = ({ children }) => {
             } else {
                 return { success: false, error: data.error };
             }
-        } catch (error) {   
+        } catch (error) {
             console.error("Fetch Chats Error:", error);
             return { success: false, error: "Server error" };
         }
