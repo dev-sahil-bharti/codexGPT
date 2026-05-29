@@ -75,13 +75,7 @@ const createUser = async (req, res) => {
     }
 
     try {
-        const { name, email, password, otp } = req.body;
-
-        // Verify OTP
-        const validOtp = await Otp.findOne({ email, otp });
-        if (!validOtp) {
-            return res.status(400).json({ error: "Invalid or expired OTP" });
-        }
+        const { name, email, password } = req.body;
 
         // Check if user already exists (double check)
         let user = await User.findOne({ email });
@@ -99,9 +93,6 @@ const createUser = async (req, res) => {
             email,
             password: hashedPassword
         });
-
-        // Delete used OTP
-        await Otp.deleteOne({ email });
 
         // Prepare payload for JWT
         const payload = {

@@ -8,8 +8,7 @@ const { createUser, loginUser, getUser, userProfile, updateProfile, forgotPasswo
 router.post('/register', [
     body('name', "Name must be at least 3 characters").isLength({ min: 3 }),
     body('email', "Please enter a valid email").isEmail(),
-    body('password', "Password must be at least 5 characters").isLength({ min: 5 }),
-    body('otp', "OTP is required").isLength({ min: 6, max: 6 }) // Add OTP validation
+    body('password', "Password must be at least 5 characters").isLength({ min: 5 })
 ], createUser);
 
 // Route 2: Authenticate a User using: POST "/api/login". No login required
