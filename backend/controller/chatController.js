@@ -103,12 +103,16 @@ const deleteChat = async (req, res) => {
     try {
         const userId = req.user.id;
         const { chatId } = req.params;
+        
+        console.log(`🗑️ Delete request - userId: ${userId}, chatId: ${chatId}`);
 
         const chat = await Chat.findOneAndDelete({ _id: chatId, user: userId });
         if (!chat) {
+            console.error(`❌ Chat not found or unauthorized - chatId: ${chatId}`);
             return res.status(404).json({ error: "Chat not found" });
         }
 
+        console.log(`✅ Chat deleted successfully - chatId: ${chatId}`);
         res.json({ success: true, message: "Chat deleted" });
     } catch (err) {
         console.error("Delete Chat Error:", err.message);
