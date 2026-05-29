@@ -1,5 +1,6 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/api';
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -19,7 +20,7 @@ export const AuthProvider = ({ children }) => {
             const token = localStorage.getItem('token');
             if (token) {
                 try {
-                    const response = await fetch('http://localhost:5000/api/getuser', {
+                    const response = await fetch(`${BACKEND_URL}/getuser`, {
                         method: 'GET',
                         headers: {
                             'auth-token': token,
@@ -44,7 +45,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         try {
-            const response = await fetch('http://localhost:5000/api/login', {
+            const response = await fetch(`${BACKEND_URL}/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -69,7 +70,7 @@ export const AuthProvider = ({ children }) => {
 
     const sendOtp = async (email) => {
         try {
-            const response = await fetch('http://localhost:5000/api/send-otp', {
+            const response = await fetch(`${BACKEND_URL}/send-otp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -90,7 +91,7 @@ export const AuthProvider = ({ children }) => {
 
     const signup = async (name, email, password, otp) => {
         try {
-            const response = await fetch('http://localhost:5000/api/register', {
+            const response = await fetch(`${BACKEND_URL}/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -120,7 +121,7 @@ export const AuthProvider = ({ children }) => {
     const getUserProfile = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/userProfile', {
+            const response = await fetch(`${BACKEND_URL}/userProfile`, {
                 method: 'GET',
                 headers: {
                     'auth-token': token,
@@ -142,7 +143,7 @@ export const AuthProvider = ({ children }) => {
     const updateProfile = async (name, email) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/updateProfile', {
+            const response = await fetch(`${BACKEND_URL}/updateProfile`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -166,7 +167,7 @@ export const AuthProvider = ({ children }) => {
     // Forgot Password
     const forgotPassword = async (email) => {
         try {
-            const response = await fetch('http://localhost:5000/api/forgotPassword', {
+            const response = await fetch(`${BACKEND_URL}/forgotPassword`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -189,7 +190,7 @@ export const AuthProvider = ({ children }) => {
     const changePassword = async (currentPassword, newPassword) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/changepassword', {
+            const response = await fetch(`${BACKEND_URL}/changepassword`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -215,7 +216,7 @@ export const AuthProvider = ({ children }) => {
     const fetchChatSummaries = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/fetchchats', {
+            const response = await fetch(`${BACKEND_URL}/fetchchats`, {
                 method: 'GET',
                 headers: {
                     'auth-token': token,
@@ -238,7 +239,7 @@ export const AuthProvider = ({ children }) => {
     const loadChatMessages = async (chatId) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/chat/${chatId}`, {
+            const response = await fetch(`${BACKEND_URL}/chat/${chatId}`, {
                 method: 'GET',
                 headers: {
                     'auth-token': token,
@@ -267,7 +268,7 @@ export const AuthProvider = ({ children }) => {
             const userMsg = { role: 'user', content: prompt, timestamp: new Date() };
             setMessages(prev => [...prev, userMsg]);
 
-            const response = await fetch('http://localhost:5000/api/chat', {
+            const response = await fetch(`${BACKEND_URL}/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -308,13 +309,19 @@ export const AuthProvider = ({ children }) => {
     const deleteChat = async (chatId) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/chat/${chatId}`, {
+            console.log(`🗑️ Deleting chat: ${chatId}`);
+            
+            const response = await fetch(`${BACKEND_URL}/chat/${chatId}`, {
                 method: 'DELETE',
                 headers: {
                     'auth-token': token,
                 },
             });
+            
+            console.log(`Delete response status: ${response.status}`);
+            
             if (response.ok) {
+                console.log(`✅ Chat deleted successfully`);
                 setChats(prev => prev.filter(c => c._id !== chatId));
                 if (currentChatId === chatId) {
                     startNewChat();
@@ -322,6 +329,7 @@ export const AuthProvider = ({ children }) => {
                 return { success: true };
             } else {
                 const data = await response.json();
+                console.error(`❌ Delete failed: ${data.error}`);
                 return { success: false, error: data.error };
             }
         } catch (error) {

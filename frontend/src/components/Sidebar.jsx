@@ -84,10 +84,18 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                 {/* Delete Button */}
                                 <button
                                     className="absolute right-2 opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition-all"
-                                    onClick={(e) => {
+                                    onClick={async (e) => {
                                         e.stopPropagation();
                                         if (window.confirm('Delete this chat?')) {
-                                            deleteChat(chat._id);
+                                            try {
+                                                const result = await deleteChat(chat._id);
+                                                if (!result.success) {
+                                                    alert(`Error: ${result.error}`);
+                                                }
+                                            } catch (error) {
+                                                console.error('Delete error:', error);
+                                                alert('Failed to delete chat');
+                                            }
                                         }
                                     }}
                                 >
