@@ -1,4 +1,6 @@
-# AI Chatbot (MERN Stack)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge&logo=google-chrome)](https://codexgpt-hyw0.onrender.com/)
+
+## AI Chatbot (MERN Stack)
 
 A comprehensive AI-powered chatbot application built using the MERN stack (MongoDB, Express.js, React, Node.js) and integrated with Google's Gemini AI.
 
